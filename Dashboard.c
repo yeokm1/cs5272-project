@@ -20,20 +20,15 @@
 #include <stdlib.h> 
 
 #define LCD_COL 16
+#define BRIGHTNESS_TOTAL 10
+#define TOTAL_BRIGHTNESS_SETTINGS 5
+
+const int POT_CAT[TOTAL_BRIGHTNESS_SETTINGS] = {204, 408, 612, 816, 1023};
+const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {0, 1 , 2 , 3, 4};
 
 
+int brightnessPosition = 0;
 
-#define BRIGHTNESS_TOTAL 100
-
-
-const int BRIGHTNESS[] = {0, 10 , 20 , 30, 40};
-
-
-int ledCurrentlyOn = 0;
-int brightnessPosition = 4;
-
-
-int ledPWMPosition = 0;
 
 os_mbx_declare (mailbox_slidesensor, 20); 
 os_mbx_declare (mailbox_potsensor, 20); 
@@ -125,52 +120,36 @@ void write_led()
   GPIO7->DR[0x3FC] = mask;
 }
 
+
 __task void headlightBrightness(){
-	int delay;
-	
-	int shouldOnNow = 0;
-	
-	
-	
+
 	while(1){ 
 		
-		delay = 1000;   
-		while (delay--);
+		int onDelay = BRIGHTNESS[brightnessPosition];
+		int offDelay = BRIGHTNESS_TOTAL - onDelay;
 		
 		
-		if(ledPWMPosition >= BRIGHTNESS_TOTAL){
-			ledPWMPosition = 0;
-		}
-		
-		if(0 <= ledPWMPosition && ledPWMPosition <= BRIGHTNESS[brightnessPosition]){
-			shouldOnNow = 1;
-		} else {
-			shouldOnNow = 0;
-		} 
-		
-		
-		ledPWMPosition++;
-		
-		
-		//printNumber(ledPWMPosition);
-		
-		if(ledCurrentlyOn != shouldOnNow){
-			ledCurrentlyOn = B0;
+		B0 = 1;
+		B1 = 1;
+		B2 = 1;
 			
-			B0 = shouldOnNow;
-			B1 = shouldOnNow;
-			B2 = shouldOnNow;
-			
-			write_led();
-			
-		}
+		write_led();
+		os_dly_wait (onDelay); 
+
 		
-
-
-
+		
+		B0 = 0;
+		B1 = 0;
+		B2 = 0;
+			
+		write_led();
+		os_dly_wait (offDelay); 
 	}
 
 }
+
+
+
 
 /*----------------------------------------------------------------------------
  *        Task 1 'ADC_Con': ADC Conversion
@@ -206,6 +185,26 @@ void printSpeed(){
 
 }
 
+void processPotValue(){
+	
+	int i;
+	char buff[16];
+	
+	for(i = 0; i < TOTAL_BRIGHTNESS_SETTINGS; i++){
+		if(potValue <= POT_CAT[i]){
+			brightnessPosition = i;
+			break;
+		}
+		
+	}
+	
+	sprintf(buff, "%d %d %d", potValue, brightnessPosition, BRIGHTNESS[brightnessPosition]);
+	
+	printMessage(buff);
+	
+
+}
+
 
 __task void ADC_Recv(void){
 		void * slideMsg;
@@ -225,7 +224,8 @@ __task void ADC_Recv(void){
 			
 			free(potMsg);
 			
-			printSpeed();
+			//printSpeed();
+			processPotValue();
 			
 
 
