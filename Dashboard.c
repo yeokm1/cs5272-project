@@ -19,12 +19,17 @@
 #include <RTL.h>
 #include <stdlib.h> 
 
+#define LCD_COL 16
+
 os_mbx_declare (mailbox_slidesensor, 20); 
 os_mbx_declare (mailbox_potsensor, 20); 
 
 unsigned char A0,A1; //A0 - Button 3.5, A1 - Button 3.6
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
 unsigned char AD_in_progress;           /* AD conversion in progress flag     */
+
+int slideValue;
+int potValue;
 
 OS_TID id_task_adc_send;
 OS_TID id_task_adc_recv;
@@ -127,15 +132,24 @@ __task void ADC_Con(void){
 	}
 }	 // End ADC_Con(void)
 
+void printSpeed(){
+
+	char buff[LCD_COL];
+	int speedValue = slideValue / 2;
+	
+	sprintf(buff, "Speed: %03dkm/h", speedValue);
+	
+	printMessage(buff);
+
+
+}
+
 
 __task void ADC_Recv(void){
 		void * slideMsg;
 		void * potMsg;
+
 	
-		int slideValue;
-		int potValue;
-	
-		char buff[20];
 		while(1){
 			
 			os_mbx_wait (&mailbox_slidesensor, &slideMsg, 0xffff); 
@@ -149,10 +163,7 @@ __task void ADC_Recv(void){
 			
 			free(potMsg);
 			
-
-			sprintf(buff, "%d, %d", slideValue, potValue);
-			
-			printMessage(buff);
+			printSpeed();
 			
 
 
