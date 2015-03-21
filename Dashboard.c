@@ -24,7 +24,7 @@
 #define TOTAL_BRIGHTNESS_SETTINGS 5
 
 const int POT_CAT[TOTAL_BRIGHTNESS_SETTINGS] = {204, 408, 612, 816, 1023};
-const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {0, 1 , 2 , 3, 4};
+const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {4, 3 , 2 , 1, 0};
 
 
 int brightnessPosition = 0;
@@ -43,6 +43,7 @@ int potValue;
 OS_TID id_task_adc_send;
 OS_TID id_task_adc_recv;
 OS_TID id_task_headlight;
+OS_TID id_task_lcd;
 
 void printMessage(char * buff){
 		LCD_cls();
@@ -173,23 +174,8 @@ __task void ADC_Con(void){
 	}
 }	 // End ADC_Con(void)
 
-void printSpeed(){
-
-	char buff[LCD_COL];
-	int speedValue = slideValue / 2;
-	
-	sprintf(buff, "Speed: %03dkm/h", speedValue);
-	
-	printMessage(buff);
-
-
-}
-
 void processPotValue(){
-	
 	int i;
-	char buff[16];
-	
 	for(i = 0; i < TOTAL_BRIGHTNESS_SETTINGS; i++){
 		if(potValue <= POT_CAT[i]){
 			brightnessPosition = i;
@@ -197,11 +183,6 @@ void processPotValue(){
 		}
 		
 	}
-	
-	sprintf(buff, "%d %d %d", potValue, brightnessPosition, BRIGHTNESS[brightnessPosition]);
-	
-	printMessage(buff);
-	
 
 }
 
@@ -224,18 +205,41 @@ __task void ADC_Recv(void){
 			
 			free(potMsg);
 			
-			//printSpeed();
 			processPotValue();
-			
-
-
+		
 		}
 		
+
+}
+
+__task void printLCD(void){
+
+  // timing
+	const unsigned int period = 100;
+	int speedValue;
+	char buff[LCD_COL];
+
+	os_itv_set(period);	
+
+	while(1){
+		
+		os_itv_wait();
+			
+
+		speedValue = slideValue / 2;
+	
+		sprintf(buff, "Speed: %03dkm/h  Ambient: %d", speedValue, potValue);
+
+	
+		printMessage(buff);
 	
 	
-	
-	
-	
+	}
+
+
+
+
+
 
 }
 
@@ -296,6 +300,7 @@ __task void init (void) {
   id_task_adc_send = os_tsk_create(ADC_Con,2);
 	id_task_adc_recv = os_tsk_create(ADC_Recv,3);
 	id_task_headlight = os_tsk_create(headlightBrightness,1);
+	id_task_lcd = os_tsk_create(printLCD,200);
   
   os_tsk_delete_self ();
 }
