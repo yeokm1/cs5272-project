@@ -21,6 +21,20 @@
 
 #define LCD_COL 16
 
+
+
+#define BRIGHTNESS_TOTAL 100
+
+
+const int BRIGHTNESS[] = {0, 10 , 20 , 30, 40};
+
+
+int ledCurrentlyOn = 0;
+int brightnessPosition = 4;
+
+
+int ledPWMPosition = 0;
+
 os_mbx_declare (mailbox_slidesensor, 20); 
 os_mbx_declare (mailbox_potsensor, 20); 
 
@@ -33,6 +47,7 @@ int potValue;
 
 OS_TID id_task_adc_send;
 OS_TID id_task_adc_recv;
+OS_TID id_task_headlight;
 
 void printMessage(char * buff){
 		LCD_cls();
@@ -108,6 +123,53 @@ void write_led()
   mask |= (B7<<7);
 
   GPIO7->DR[0x3FC] = mask;
+}
+
+__task void headlightBrightness(){
+	int delay;
+	
+	int shouldOnNow = 0;
+	
+	
+	
+	while(1){ 
+		
+		delay = 1000;   
+		while (delay--);
+		
+		
+		if(ledPWMPosition >= BRIGHTNESS_TOTAL){
+			ledPWMPosition = 0;
+		}
+		
+		if(0 <= ledPWMPosition && ledPWMPosition <= BRIGHTNESS[brightnessPosition]){
+			shouldOnNow = 1;
+		} else {
+			shouldOnNow = 0;
+		} 
+		
+		
+		ledPWMPosition++;
+		
+		
+		//printNumber(ledPWMPosition);
+		
+		if(ledCurrentlyOn != shouldOnNow){
+			ledCurrentlyOn = B0;
+			
+			B0 = shouldOnNow;
+			B1 = shouldOnNow;
+			B2 = shouldOnNow;
+			
+			write_led();
+			
+		}
+		
+
+
+
+	}
+
 }
 
 /*----------------------------------------------------------------------------
@@ -231,8 +293,9 @@ __task void init (void) {
 
 	initMailBoxes();
 
-  id_task_adc_send = os_tsk_create(ADC_Con,1);
-	id_task_adc_recv = os_tsk_create(ADC_Recv,2);
+  id_task_adc_send = os_tsk_create(ADC_Con,2);
+	id_task_adc_recv = os_tsk_create(ADC_Recv,3);
+	id_task_headlight = os_tsk_create(headlightBrightness,1);
   
   os_tsk_delete_self ();
 }
