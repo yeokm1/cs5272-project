@@ -41,6 +41,7 @@ unsigned char engineChangingState = 0;
 os_mbx_declare (mailbox_slidesensor, 20); 
 os_mbx_declare (mailbox_potsensor, 20); 
 os_mbx_declare (mailbox_engineButton, 20); 
+os_mbx_declare (mailbox_doorButton, 20);
 
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
 unsigned char AD_in_progress;           /* AD conversion in progress flag     */
@@ -48,11 +49,14 @@ unsigned char AD_in_progress;           /* AD conversion in progress flag     */
 int slideValue;
 int potValue;
 
+int currentSpeed;
+
 OS_TID id_task_get_adc_and_buttons;
 OS_TID id_task_adc_recv;
 OS_TID id_task_headlight;
 OS_TID id_task_lcd;
 OS_TID id_task_engine;
+OS_TID id_task_door;
 
 OS_MUT mutex_lcd;
 
@@ -138,6 +142,15 @@ void read_and_process_buttons(){
 		}			
 	} 
 	engineButtonPrevState = button_engine_now;
+	
+	
+	
+	//Debounce the door button press
+	if(button_door_now && !doorButtonPrevState){
+			os_mbx_send (&mailbox_doorButton, NULL, 0xFFFF); 	
+	} 
+	doorButtonPrevState = button_door_now;
+	
 	
 	
 }
@@ -258,7 +271,6 @@ __task void printLCD(void){
 
   // timing
 	const unsigned int period = 100;
-	int speedValue;
 	char buff[LCD_COL];
 
 	os_itv_set(period);	
@@ -268,11 +280,11 @@ __task void printLCD(void){
 		os_itv_wait();
 			
 
-		speedValue = slideValue / 2;
+		currentSpeed = slideValue / 2;
 		
 		
 		if(engineCurrentlyOn){
-			sprintf(buff, "Speed: %03dkm/h  Ambient: %d", speedValue, potValue);
+			sprintf(buff, "Speed: %03dkm/h  Ambient: %d", currentSpeed, potValue);
 			
 		} else {
 			sprintf(buff, "Engine Off      Ambient: %d", potValue);
@@ -328,6 +340,33 @@ __task void engineChangerTask(void){
 		}
 		
 	}
+
+
+}
+
+__task void doorTask(void){
+	void * doorButtonMessage;
+	
+
+	while(1){
+		os_mbx_wait (&mailbox_doorButton, &doorButtonMessage, 0xffff);
+		if(doorCurrentlyOpen){
+			doorCurrentlyOpen = 0;
+			B7 = 0;
+			write_led();
+		} else {
+			if(currentSpeed == 0){
+				doorCurrentlyOpen = 1;
+				B7 = 1;
+				write_led();
+			
+			}
+		
+		}
+	
+	
+	}
+
 
 
 }
@@ -394,6 +433,7 @@ __task void init (void) {
 	id_task_headlight = os_tsk_create(headlightBrightness,1);
 	
 	id_task_engine = os_tsk_create(engineChangerTask,150);
+	id_task_door = os_tsk_create(doorTask, 151);
 	id_task_lcd = os_tsk_create(printLCD,200);
   
   os_tsk_delete_self ();
