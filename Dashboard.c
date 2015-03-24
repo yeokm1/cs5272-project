@@ -20,11 +20,11 @@
 #include <stdlib.h> 
 
 #define LCD_COL 16
-#define BRIGHTNESS_TOTAL 10
+#define BRIGHTNESS_TOTAL 20
 #define TOTAL_BRIGHTNESS_SETTINGS 5
 
 const int POT_CAT[TOTAL_BRIGHTNESS_SETTINGS] = {204, 408, 612, 816, 1023};
-const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {4, 3 , 2 , 1, 0};
+const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {10, 5 , 3 , 1, 0};
 
 
 int brightnessPosition = 0;
