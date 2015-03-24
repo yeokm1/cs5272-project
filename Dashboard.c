@@ -436,11 +436,10 @@ void doorJustClosed(){
 
 __task void interiorTask(){
 	
-	os_itv_set(100);
 	
 	while(1){
 		int doorOpenCountDown;
-		os_itv_wait();
+		os_dly_wait(100);
 		
 		if(openToClose && !doorCurrentlyOpen){
 			doorJustClosed();
