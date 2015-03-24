@@ -33,14 +33,14 @@ int brightnessPosition = 0;
 os_mbx_declare (mailbox_slidesensor, 20); 
 os_mbx_declare (mailbox_potsensor, 20); 
 
-unsigned char A0,A1; //A0 - Button 3.5, A1 - Button 3.6
+unsigned char button_door , button_engine;
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
 unsigned char AD_in_progress;           /* AD conversion in progress flag     */
 
 int slideValue;
 int potValue;
 
-OS_TID id_task_adc_send;
+OS_TID id_task_get_adc_and_buttons;
 OS_TID id_task_adc_recv;
 OS_TID id_task_headlight;
 OS_TID id_task_lcd;
@@ -96,10 +96,12 @@ __irq void ADC_IRQ_Handler (void) {     /* AD converter interrupt routine     */
 //Function to read input
 void read_buttons()
 {
+	 //A0 - Button 3.5, A1 - Button 3.6
+	
 	//BUTTON_3_5:
-	A0 = !(GPIO3->DR[0x080]>>5); // Returns 1 when pressed and 0 when released
+	button_door = !(GPIO3->DR[0x080]>>5); // Returns 1 when pressed and 0 when released
 	//BUTTON_3_6:
-	A1 = !(GPIO3->DR[0x100]>>6); // Returns 1 when pressed and 0 when released
+	button_engine = !(GPIO3->DR[0x100]>>6); // Returns 1 when pressed and 0 when released
 
 }
 
@@ -149,30 +151,33 @@ __task void headlightBrightness(){
 
 }
 
-
+void start_adc(){
+			//This code starts the ADC
+		if (!AD_in_progress){             						    /* If conversion not in progress      */
+        AD_in_progress = 1;                 /* Flag that AD conversion is started */
+        ADC->CR |= 0x0423;                  /* Set STR bit (Start Conversion)     */
+		}
+	//Now the interrupt will be called when conversion ends
+	
+}
 
 
 /*----------------------------------------------------------------------------
  *        Task 1 'ADC_Con': ADC Conversion
  *---------------------------------------------------------------------------*/
-__task void ADC_Con(void){
+__task void GET_INPUTS(void){
   // timing
 	const unsigned int period = 100;
 
 	os_itv_set(period);	
 	for(;;){ 
 		os_itv_wait();
-		/* Do actions below */
-		if (!AD_in_progress){             						    /* If conversion not in progress      */
-        AD_in_progress = 1;                 /* Flag that AD conversion is started */
-        ADC->CR |= 0x0423;                  /* Set STR bit (Start Conversion)     */
-		}
-	//Now the interrupt will be called when conversion ends
+		
+		start_adc();
+		read_buttons();
 			
-
-					
 	}
-}	 // End ADC_Con(void)
+}
 
 void processPotValue(){
 	int i;
@@ -297,7 +302,7 @@ __task void init (void) {
 
 	initMailBoxes();
 
-  id_task_adc_send = os_tsk_create(ADC_Con,2);
+  id_task_get_adc_and_buttons = os_tsk_create(GET_INPUTS,2);
 	id_task_adc_recv = os_tsk_create(ADC_Recv,3);
 	id_task_headlight = os_tsk_create(headlightBrightness,1);
 	id_task_lcd = os_tsk_create(printLCD,200);
