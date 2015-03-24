@@ -316,7 +316,7 @@ __task void engineChangerTask(void){
 			
 			printMessage("Stopping Engine",0xFFFE, FALSE);
 			
-			os_dly_wait (2000); 
+			os_dly_wait (1000); 
 	
 		
 			engineCurrentlyOn = 0;
@@ -328,7 +328,7 @@ __task void engineChangerTask(void){
 		
 			printMessage("Starting Engine", 0xFFFE, FALSE);
 			
-			os_dly_wait (2000); 
+			os_dly_wait (1000); 
 			
 			engineCurrentlyOn = 1;
 			
@@ -369,6 +369,14 @@ __task void speedTask(){
 			os_itv_wait();
 			currentSpeed = slideValue / 2;
 		}
+
+	}
+
+void changeInteriorLights(char state){
+		B3 = state;
+		B4 = state;
+		B5 = state;
+		write_led();
 }
 
 void doorJustClosed(){
@@ -377,17 +385,19 @@ void doorJustClosed(){
 	int ticksAtEachBrightness = 0;
 	
 	openToClose = 0;
-	B3 = 1;
-	B4 = 1;
-	B5 = 1;
-	write_led();
+	changeInteriorLights(1);
 	
-	
-	for(lightsOnCountDown = 0; lightsOnCountDown < 10; lightsOnCountDown++){
+	//10 seconds. We have a short delay so the doorCurrentlyOpen and engineCurrentlyOn can react faster
+	for(lightsOnCountDown = 0; lightsOnCountDown < 100; lightsOnCountDown++){
 		if(doorCurrentlyOpen){
 			return;
 		}
-		os_dly_wait(1000);
+		
+		if(engineCurrentlyOn){
+				changeInteriorLights(0);
+				return;
+		}
+		os_dly_wait(100);
 	}
 
 	brightnessPositionInterior = 0;
@@ -396,18 +406,10 @@ void doorJustClosed(){
 		int onDelay = BRIGHTNESS[brightnessPositionInterior];
 		int offDelay = BRIGHTNESS_TOTAL - onDelay;
 		
-		B3 = 1;
-		B4 = 1;
-		B5 = 1;
-			
-		write_led();
+		changeInteriorLights(1);
 		os_dly_wait (onDelay);
 
-		B3 = 0;
-		B4 = 0;
-		B5 = 0;
-			
-		write_led();
+		changeInteriorLights(0);
 		os_dly_wait (offDelay);
 		
 		ticksAtEachBrightness++;
@@ -427,11 +429,15 @@ void doorJustClosed(){
 			ticksAtEachBrightness = 0;
 		}			
 		
-		
+		if(engineCurrentlyOn){
+				changeInteriorLights(0);
+				return;
+		}
 
 		
 	}
 }
+
 
 
 __task void interiorTask(){
@@ -440,37 +446,36 @@ __task void interiorTask(){
 	while(1){
 		int doorOpenCountDown;
 		os_dly_wait(100);
+		if(!engineCurrentlyOn){
 		
-		if(openToClose && !doorCurrentlyOpen){
-			doorJustClosed();
-		} else if(doorCurrentlyOpen && potValue < 512 && openToClose == 0){
-			B3 = 1;
-			B4 = 1;
-			B5 = 1;
-			write_led();
+			if(openToClose && !doorCurrentlyOpen){
+				doorJustClosed();
+			} else if(doorCurrentlyOpen && potValue < 512 && openToClose == 0){
+				changeInteriorLights(1);
 
 			
-			for(doorOpenCountDown = 0; doorOpenCountDown < 20; doorOpenCountDown++){
-				if(!doorCurrentlyOpen){
-					break;
+				for(doorOpenCountDown = 0; doorOpenCountDown < 20; doorOpenCountDown++){
+					if(!doorCurrentlyOpen || engineCurrentlyOn){
+						break;
+					}
+					os_dly_wait(1000);
 				}
-				os_dly_wait(1000);
-			}
 			
-			if(doorCurrentlyOpen){
-				B3 = 0;
-				B4 = 0;
-				B5 = 0;
-				write_led();
-				openToClose = 1;
-			} else {
-				doorJustClosed();
-			}
+				if(engineCurrentlyOn){
+					changeInteriorLights(0);
+					continue;
+				}
+				if(doorCurrentlyOpen){
+					changeInteriorLights(0);
+					openToClose = 1;
+				} else {
+					doorJustClosed();
+				}
 				
 		
-		}
+			}
 		
-	
+		}
 	}
 	
 	
