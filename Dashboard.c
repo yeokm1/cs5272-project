@@ -24,10 +24,11 @@
 #define TOTAL_BRIGHTNESS_SETTINGS 5
 
 const int POT_CAT[TOTAL_BRIGHTNESS_SETTINGS] = {204, 408, 612, 816, 1023};
-const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {10, 5 , 3 , 1, 0};
+const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {20, 10 , 6 , 3, 0};
 
 
-int brightnessPosition = 0;
+int brightnessPositionHeadlight = 0;
+int brightnessPositionInterior = 0;
 
 
 unsigned char engineButtonPrevState = 0;
@@ -51,6 +52,8 @@ int potValue;
 
 int currentSpeed;
 
+int openToClose = 0;
+
 OS_TID id_task_get_adc_and_buttons;
 OS_TID id_task_adc_recv;
 OS_TID id_task_headlight;
@@ -58,6 +61,8 @@ OS_TID id_task_lcd;
 OS_TID id_task_engine;
 OS_TID id_task_door;
 OS_TID id_task_speed;
+OS_TID id_task_interior;
+
 
 OS_MUT mutex_lcd;
 
@@ -179,7 +184,7 @@ __task void headlightBrightness(){
 
 	while(1){ 
 		
-		int onDelay = BRIGHTNESS[brightnessPosition];
+		int onDelay = BRIGHTNESS[brightnessPositionHeadlight];
 		int offDelay = BRIGHTNESS_TOTAL - onDelay;
 		
 		
@@ -234,7 +239,7 @@ void processPotValue(){
 	int i;
 	for(i = 0; i < TOTAL_BRIGHTNESS_SETTINGS; i++){
 		if(potValue <= POT_CAT[i]){
-			brightnessPosition = i;
+			brightnessPositionHeadlight = i;
 			break;
 		}
 		
@@ -287,10 +292,7 @@ __task void printLCD(void){
 			sprintf(buff, "Engine Off      Amb: %d, D:%d", potValue, doorCurrentlyOpen);
 			
 		}
-	
-
-
-	
+		
 		printMessage(buff, 0, TRUE);
 	
 	
@@ -369,6 +371,112 @@ __task void speedTask(){
 		}
 }
 
+void doorJustClosed(){
+	int lightsOnCountDown;
+	
+	int ticksAtEachBrightness = 0;
+	
+	openToClose = 0;
+	B3 = 1;
+	B4 = 1;
+	B5 = 1;
+	write_led();
+	
+	
+	for(lightsOnCountDown = 0; lightsOnCountDown < 10; lightsOnCountDown++){
+		if(doorCurrentlyOpen){
+			return;
+		}
+		os_dly_wait(1000);
+	}
+
+	brightnessPositionInterior = 0;
+	while(1){ 
+		
+		int onDelay = BRIGHTNESS[brightnessPositionInterior];
+		int offDelay = BRIGHTNESS_TOTAL - onDelay;
+		
+		B3 = 1;
+		B4 = 1;
+		B5 = 1;
+			
+		write_led();
+		os_dly_wait (onDelay);
+
+		B3 = 0;
+		B4 = 0;
+		B5 = 0;
+			
+		write_led();
+		os_dly_wait (offDelay);
+		
+		ticksAtEachBrightness++;
+		
+		
+		
+		if(doorCurrentlyOpen){
+			return;
+		}
+		
+		if(ticksAtEachBrightness > 50){
+		  brightnessPositionInterior++;	
+			
+			if(brightnessPositionInterior >= TOTAL_BRIGHTNESS_SETTINGS){
+				return;
+			}
+			ticksAtEachBrightness = 0;
+		}			
+		
+		
+
+		
+	}
+}
+
+
+__task void interiorTask(){
+	
+	os_itv_set(100);
+	
+	while(1){
+		int doorOpenCountDown;
+		os_itv_wait();
+		
+		if(openToClose && !doorCurrentlyOpen){
+			doorJustClosed();
+		} else if(doorCurrentlyOpen && potValue < 512 && openToClose == 0){
+			B3 = 1;
+			B4 = 1;
+			B5 = 1;
+			write_led();
+
+			
+			for(doorOpenCountDown = 0; doorOpenCountDown < 20; doorOpenCountDown++){
+				if(!doorCurrentlyOpen){
+					break;
+				}
+				os_dly_wait(1000);
+			}
+			
+			if(doorCurrentlyOpen){
+				B3 = 0;
+				B4 = 0;
+				B5 = 0;
+				write_led();
+				openToClose = 1;
+			} else {
+				doorJustClosed();
+			}
+				
+		
+		}
+		
+	
+	}
+	
+	
+}
+
 
 
 
@@ -432,7 +540,7 @@ __task void init (void) {
 	id_task_speed = os_tsk_create(speedTask, 4);
 	
 	
-	
+	id_task_interior = os_tsk_create(interiorTask, 10);
 	id_task_engine = os_tsk_create(engineChangerTask,150);
 	id_task_door = os_tsk_create(doorTask, 151);
 	id_task_lcd = os_tsk_create(printLCD,200);
