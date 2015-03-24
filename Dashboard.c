@@ -62,6 +62,7 @@ OS_TID id_task_engine;
 OS_TID id_task_door;
 OS_TID id_task_speed;
 OS_TID id_task_interior;
+OS_TID id_task_alarm;
 
 
 OS_MUT mutex_lcd;
@@ -304,6 +305,46 @@ void printEngineStoppedMessage(){
 	printMessageWithoutMutex("Engine Stop");
 }
 
+
+__task void alarmTask(void){
+	
+	
+	while(1){
+		B6 = 1;
+		B7 = 1;
+			
+		write_led();
+		os_dly_wait (200); 
+
+		
+		B6 = 0;
+		B7 = 0;
+
+			
+		write_led();
+		
+		
+		if(!engineCurrentlyOn || !doorCurrentlyOpen){
+			break;
+		}
+		
+		os_dly_wait (200); 
+		
+		
+	}
+	
+	
+	os_tsk_delete_self();
+}
+
+void startAlarmTaskIfNeeded(){
+	
+	if(doorCurrentlyOpen || engineCurrentlyOn){
+		os_tsk_create(alarmTask, 5);
+	}
+	
+}
+
 __task void engineChangerTask(void){
 
 	
@@ -334,6 +375,8 @@ __task void engineChangerTask(void){
 			
 			engineChangingState = 0;
 			os_mut_release (&mutex_lcd);
+			
+			startAlarmTaskIfNeeded();
 		}
 		
 	}
@@ -352,6 +395,7 @@ __task void doorTask(void){
 		} else {
 			if(currentSpeed == 0){
 				doorCurrentlyOpen = 1;
+				startAlarmTaskIfNeeded();
 			}
 		
 		}
