@@ -284,10 +284,10 @@ __task void printLCD(void){
 		
 		
 		if(engineCurrentlyOn){
-			sprintf(buff, "Speed: %03dkm/h  Ambient: %d", currentSpeed, potValue);
+			sprintf(buff, "Speed: %03dkm/h  Amb: %d, D:%d", currentSpeed, potValue, doorCurrentlyOpen);
 			
 		} else {
-			sprintf(buff, "Engine Off      Ambient: %d", potValue);
+			sprintf(buff, "Engine Off      Amb: %d, D:%d", potValue, doorCurrentlyOpen);
 			
 		}
 	
@@ -352,14 +352,9 @@ __task void doorTask(void){
 		os_mbx_wait (&mailbox_doorButton, &doorButtonMessage, 0xffff);
 		if(doorCurrentlyOpen){
 			doorCurrentlyOpen = 0;
-			B7 = 0;
-			write_led();
 		} else {
 			if(currentSpeed == 0){
 				doorCurrentlyOpen = 1;
-				B7 = 1;
-				write_led();
-			
 			}
 		
 		}
