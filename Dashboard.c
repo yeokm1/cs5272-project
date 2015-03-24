@@ -269,8 +269,17 @@ __task void printLCD(void){
 			
 
 		speedValue = slideValue / 2;
+		
+		
+		if(engineCurrentlyOn){
+			sprintf(buff, "Speed: %03dkm/h  Ambient: %d", speedValue, potValue);
+			
+		} else {
+			sprintf(buff, "Engine Off      Ambient: %d", potValue);
+			
+		}
 	
-		sprintf(buff, "Speed: %03dkm/h  Ambient: %d", speedValue, potValue);
+
 
 	
 		printMessage(buff, 0, TRUE);
@@ -299,8 +308,7 @@ __task void engineChangerTask(void){
 			printMessage("Stopping Engine",0xFFFE, FALSE);
 			
 			os_dly_wait (2000); 
-		
-			printEngineStoppedMessage();
+	
 		
 			engineCurrentlyOn = 0;
 			
