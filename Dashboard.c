@@ -57,6 +57,7 @@ OS_TID id_task_headlight;
 OS_TID id_task_lcd;
 OS_TID id_task_engine;
 OS_TID id_task_door;
+OS_TID id_task_speed;
 
 OS_MUT mutex_lcd;
 
@@ -278,11 +279,7 @@ __task void printLCD(void){
 	while(1){
 		
 		os_itv_wait();
-			
-
-		currentSpeed = slideValue / 2;
-		
-		
+				
 		if(engineCurrentlyOn){
 			sprintf(buff, "Speed: %03dkm/h  Amb: %d, D:%d", currentSpeed, potValue, doorCurrentlyOpen);
 			
@@ -359,9 +356,17 @@ __task void doorTask(void){
 	
 	
 	}
+}
 
-
-
+__task void speedTask(){
+	
+	
+		os_itv_set(100);	
+		while(1){
+		
+			os_itv_wait();
+			currentSpeed = slideValue / 2;
+		}
 }
 
 
@@ -424,6 +429,9 @@ __task void init (void) {
   id_task_get_adc_and_buttons = os_tsk_create(GET_INPUTS,2);
 	id_task_adc_recv = os_tsk_create(ADC_Recv,3);
 	id_task_headlight = os_tsk_create(headlightBrightness,1);
+	id_task_speed = os_tsk_create(speedTask, 4);
+	
+	
 	
 	id_task_engine = os_tsk_create(engineChangerTask,150);
 	id_task_door = os_tsk_create(doorTask, 151);
