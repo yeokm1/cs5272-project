@@ -404,11 +404,6 @@
               <FilePath>.\LCD.c</FilePath>
             </File>
             <File>
-              <FileName>IRQ.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\IRQ.c</FilePath>
-            </File>
-            <File>
               <FileName>Dashboard.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Dashboard.c</FilePath>
@@ -828,11 +823,6 @@
               <FileName>LCD.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\LCD.c</FilePath>
-            </File>
-            <File>
-              <FileName>IRQ.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\IRQ.c</FilePath>
             </File>
             <File>
               <FileName>Dashboard.c</FileName>

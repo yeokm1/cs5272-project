@@ -263,8 +263,18 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
+          <Key>DLGTARM</Key>
+          <Name>(1257=-1,-1,-1,-1,0)(2301=-1,-1,-1,-1,0)(90=-1,-1,-1,-1,0)(91=-1,-1,-1,-1,0)(120=-1,-1,-1,-1,0)(121=-1,-1,-1,-1,0)(122=-1,-1,-1,-1,0)(123=-1,-1,-1,-1,0)(124=-1,-1,-1,-1,0)(125=-1,-1,-1,-1,0)(126=-1,-1,-1,-1,0)(127=-1,-1,-1,-1,0)(128=-1,-1,-1,-1,0)(129=-1,-1,-1,-1,0)(80=-1,-1,-1,-1,0)(2300=-1,-1,-1,-1,0)(136=-1,-1,-1,-1,0)(137=-1,-1,-1,-1,0)(140=-1,-1,-1,-1,0)(141=-1,-1,-1,-1,0)(142=-1,-1,-1,-1,0)(143=-1,-1,-1,-1,0)(2305=-1,-1,-1,-1,0)(2306=-1,-1,-1,-1,0)(150=-1,-1,-1,-1,0)(151=-1,-1,-1,-1,0)(152=-1,-1,-1,-1,0)(160=-1,-1,-1,-1,0)(161=-1,-1,-1,-1,0)(170=-1,-1,-1,-1,0)(171=-1,-1,-1,-1,0)(180=-1,-1,-1,-1,0)(186=-1,-1,-1,-1,0)(187=-1,-1,-1,-1,0)(200=-1,-1,-1,-1,0)(210=-1,-1,-1,-1,0)(220=-1,-1,-1,-1,0)</Name>
+        </SetRegEntry>
+        <SetRegEntry>
+          <Number>0</Number>
+          <Key>ARMDBGFLAGS</Key>
+          <Name></Name>
+        </SetRegEntry>
+        <SetRegEntry>
+          <Number>0</Number>
           <Key>UL2ARM</Key>
-          <Name>UL2ARM(-UU0639C7E -O15 -S0 -C1 -N00("ST uPSD Flash") -D00(04570041) -L00(8) -N01("ARM966E-S Core") -D01(25966041) -L01(4) -N02("ST Boundary Scan") -D02(0457F041) -L02(5) -FO15 -FD4000000 -FC800 -FN2 -FF0STR91xFxx4 -FS00 -FL080000 -FF1STR91xFxx4B1 -FS1400000 -FL18000)</Name>
+          <Name>-UM0632BJE -O15 -S0 -C1 -N00("ST uPSD Flash") -D00(04570041) -L00(8) -N01("ARM966E-S Core") -D01(25966041) -L01(4) -N02("ST Boundary Scan") -D02(2457F041) -L02(5) -FO15 -FD4000000 -FC800 -FN2 -FF0STR91xFxx4 -FS00 -FL080000 -FF1STR91xFxx4B1 -FS1400000 -FL18000</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
       <Breakpoint/>
@@ -274,12 +284,12 @@
       <DebugFlag>
         <trace>0</trace>
         <periodic>0</periodic>
-        <aLwin>0</aLwin>
+        <aLwin>1</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
         <aSer2>0</aSer2>
         <aPa>0</aPa>
-        <viewmode>0</viewmode>
+        <viewmode>1</viewmode>
         <vrSel>0</vrSel>
         <aSym>0</aSym>
         <aTbox>0</aTbox>
@@ -330,26 +340,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>1</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>3</TopLine>
-      <CurrentLine>22</CurrentLine>
-      <bDave2>0</bDave2>
-      <PathWithFileName>.\IRQ.c</PathWithFileName>
-      <FilenameWithoutPath>IRQ.c</FilenameWithoutPath>
-      <RteFlg>0</RteFlg>
-      <bShared>0</bShared>
-    </File>
-    <File>
-      <GroupNumber>1</GroupNumber>
-      <FileNumber>3</FileNumber>
-      <FileType>1</FileType>
-      <tvExp>0</tvExp>
-      <Focus>0</Focus>
-      <ColumnNumber>26</ColumnNumber>
-      <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>7</TopLine>
-      <CurrentLine>73</CurrentLine>
+      <TopLine>122</TopLine>
+      <CurrentLine>56</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\Dashboard.c</PathWithFileName>
       <FilenameWithoutPath>Dashboard.c</FilenameWithoutPath>
@@ -366,14 +360,14 @@
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>2</GroupNumber>
-      <FileNumber>4</FileNumber>
+      <FileNumber>3</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>178</TopLine>
+      <CurrentLine>186</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\RTX_Config.c</PathWithFileName>
       <FilenameWithoutPath>RTX_Config.c</FilenameWithoutPath>
@@ -382,14 +376,14 @@
     </File>
     <File>
       <GroupNumber>2</GroupNumber>
-      <FileNumber>5</FileNumber>
+      <FileNumber>4</FileNumber>
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>513</TopLine>
+      <CurrentLine>520</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\STR91x.s</PathWithFileName>
       <FilenameWithoutPath>STR91x.s</FilenameWithoutPath>
