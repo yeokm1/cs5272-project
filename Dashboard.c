@@ -30,10 +30,18 @@ const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {10, 5 , 3 , 1, 0};
 int brightnessPosition = 0;
 
 
+unsigned char engineButtonPrevState = 0;
+unsigned char doorButtonPrevState = 0;
+
+unsigned char engineCurrentlyOn = 0;
+unsigned char doorCurrentlyOpen = 0;
+
+unsigned char engineChangingState = 0;
+
 os_mbx_declare (mailbox_slidesensor, 20); 
 os_mbx_declare (mailbox_potsensor, 20); 
+os_mbx_declare (mailbox_engineButton, 20); 
 
-unsigned char button_door , button_engine;
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
 unsigned char AD_in_progress;           /* AD conversion in progress flag     */
 
@@ -44,22 +52,39 @@ OS_TID id_task_get_adc_and_buttons;
 OS_TID id_task_adc_recv;
 OS_TID id_task_headlight;
 OS_TID id_task_lcd;
+OS_TID id_task_engine;
 
-void printMessage(char * buff){
-		LCD_cls();
-		LCD_puts((unsigned char *) buff);
+OS_MUT mutex_lcd;
+
+
+void printMessageWithoutMutex(char * buff){
+			LCD_cls();
+			LCD_puts((unsigned char *) buff);
 }
 
 
-void printNumber(int number){
-	  char buff[20];
-		sprintf(buff, "%d", number);
-		printMessage(buff);
+OS_RESULT printMessage(char * buff, U16 timeout, int releaseWhenDone){
+	  OS_RESULT acquireResult = os_mut_wait (&mutex_lcd, timeout);
+		
+		if(acquireResult == OS_R_OK || acquireResult == OS_R_MUT){
+			
+			printMessageWithoutMutex(buff);
+			
+			if(releaseWhenDone){
+				os_mut_release (&mutex_lcd);
+			}
+			
+		}
+		
+		return acquireResult;	
 }
+
 
 
 void initMailBoxes(){
-	os_mbx_init (&mailbox_slidesensor, sizeof (mailbox_slidesensor)); 	
+	os_mbx_init (&mailbox_slidesensor, sizeof (mailbox_slidesensor));
+	os_mbx_init (&mailbox_potsensor, sizeof (mailbox_potsensor)); 
+	os_mbx_init (&mailbox_engineButton, sizeof (mailbox_engineButton)); 	
 }
 
 
@@ -94,15 +119,27 @@ __irq void ADC_IRQ_Handler (void) {     /* AD converter interrupt routine     */
 
 
 //Function to read input
-void read_buttons()
-{
+void read_and_process_buttons(){
 	 //A0 - Button 3.5, A1 - Button 3.6
+	int button_door_now;
+	int button_engine_now;
 	
 	//BUTTON_3_5:
-	button_door = !(GPIO3->DR[0x080]>>5); // Returns 1 when pressed and 0 when released
+	button_door_now = !(GPIO3->DR[0x080]>>5); // Returns 1 when pressed and 0 when released
 	//BUTTON_3_6:
-	button_engine = !(GPIO3->DR[0x100]>>6); // Returns 1 when pressed and 0 when released
+	button_engine_now = !(GPIO3->DR[0x100]>>6); // Returns 1 when pressed and 0 when released
 
+	//Debounce the engine button press
+	if(button_engine_now && !engineButtonPrevState){
+		
+		if(!engineChangingState){
+				engineChangingState = 1;
+				os_mbx_send (&mailbox_engineButton, NULL, 0xFFFF); 	
+		}			
+	} 
+	engineButtonPrevState = button_engine_now;
+	
+	
 }
 
 
@@ -174,7 +211,7 @@ __task void GET_INPUTS(void){
 		os_itv_wait();
 		
 		start_adc();
-		read_buttons();
+		read_and_process_buttons();
 			
 	}
 }
@@ -236,17 +273,57 @@ __task void printLCD(void){
 		sprintf(buff, "Speed: %03dkm/h  Ambient: %d", speedValue, potValue);
 
 	
-		printMessage(buff);
+		printMessage(buff, 0, TRUE);
 	
 	
 	}
 
+}
 
+void printEngineStoppedMessage(){
+	printMessageWithoutMutex("Engine Stop");
+}
 
+__task void engineChangerTask(void){
 
+	
+	void * engineButtonMessage;
+	
+	char buff[32];
+	
+	while(1){
+		os_mbx_wait (&mailbox_engineButton, &engineButtonMessage, 0xffff);
+		
+		if(engineCurrentlyOn){
+			
+			printMessage("Stopping Engine",0xFFFE, FALSE);
+			
+			os_dly_wait (2000); 
+		
+			printEngineStoppedMessage();
+		
+			engineCurrentlyOn = 0;
+			
+			engineChangingState = 0;
+			os_mut_release (&mutex_lcd);
+			
+		} else {
+		
+			printMessage("Starting Engine", 0xFFFE, FALSE);
+			
+			os_dly_wait (2000); 
+			
+			engineCurrentlyOn = 1;
+			
+			engineChangingState = 0;
+			os_mut_release (&mutex_lcd);
+		}
+		
+	}
 
 
 }
+
 
 
 
@@ -300,11 +377,15 @@ __task void init (void) {
   LCD_cur_off(); //Remove LCD cursor
   LCD_cls(); //Clearing LCD screen
 
+	printEngineStoppedMessage();
+
 	initMailBoxes();
 
   id_task_get_adc_and_buttons = os_tsk_create(GET_INPUTS,2);
 	id_task_adc_recv = os_tsk_create(ADC_Recv,3);
 	id_task_headlight = os_tsk_create(headlightBrightness,1);
+	
+	id_task_engine = os_tsk_create(engineChangerTask,150);
 	id_task_lcd = os_tsk_create(printLCD,200);
   
   os_tsk_delete_self ();

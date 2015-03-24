@@ -340,10 +340,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>38</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>122</TopLine>
-      <CurrentLine>56</CurrentLine>
+      <TopLine>259</TopLine>
+      <CurrentLine>274</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\Dashboard.c</PathWithFileName>
       <FilenameWithoutPath>Dashboard.c</FilenameWithoutPath>
@@ -382,8 +382,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>513</TopLine>
-      <CurrentLine>520</CurrentLine>
+      <TopLine>478</TopLine>
+      <CurrentLine>485</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\STR91x.s</PathWithFileName>
       <FilenameWithoutPath>STR91x.s</FilenameWithoutPath>
