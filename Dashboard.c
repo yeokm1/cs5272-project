@@ -181,6 +181,15 @@ void write_led()
 }
 
 
+void changeHeadLightsState(int state){
+		B0 = state;
+		B1 = state;
+		B2 = state;
+			
+		write_led();
+}
+
+
 __task void headlightBrightness(){
 
 	while(1){ 
@@ -188,22 +197,13 @@ __task void headlightBrightness(){
 		int onDelay = BRIGHTNESS[brightnessPositionHeadlight];
 		int offDelay = BRIGHTNESS_TOTAL - onDelay;
 		
-		
-		B0 = 1;
-		B1 = 1;
-		B2 = 1;
-			
-		write_led();
-		os_dly_wait (onDelay); 
-
-		
-		
-		B0 = 0;
-		B1 = 0;
-		B2 = 0;
-			
-		write_led();
+		changeHeadLightsState(0);
 		os_dly_wait (offDelay); 
+						
+		changeHeadLightsState(1);
+		os_dly_wait (onDelay);
+				
+
 	}
 
 }
