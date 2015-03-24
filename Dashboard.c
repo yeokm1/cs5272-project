@@ -310,8 +310,6 @@ __task void engineChangerTask(void){
 	
 	void * engineButtonMessage;
 	
-	char buff[32];
-	
 	while(1){
 		os_mbx_wait (&mailbox_engineButton, &engineButtonMessage, 0xffff);
 		
