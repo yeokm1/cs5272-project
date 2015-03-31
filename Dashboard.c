@@ -55,7 +55,8 @@ unsigned char engineChangingState = 0;
 
 os_mbx_declare (mailbox_slidesensor, 20); 
 os_mbx_declare (mailbox_potsensor, 20); 
-os_mbx_declare (mailbox_engineButton, 20); 
+os_mbx_declare (mailbox_engineButton, 20);
+os_mbx_declare (mailbox_customsensor, 20);
 os_mbx_declare (mailbox_doorButton, 20);
 
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
@@ -63,6 +64,7 @@ unsigned char AD_in_progress;           /* AD conversion in progress flag     */
 
 int slideValue;
 int potValue;
+int customSensorValue;
 
 float currentSpeed;
 
@@ -109,7 +111,9 @@ OS_RESULT printMessage(char * buff, U16 timeout, int releaseWhenDone){
 void initMailBoxes(){
 	os_mbx_init (&mailbox_slidesensor, sizeof (mailbox_slidesensor));
 	os_mbx_init (&mailbox_potsensor, sizeof (mailbox_potsensor)); 
-	os_mbx_init (&mailbox_engineButton, sizeof (mailbox_engineButton)); 	
+	os_mbx_init (&mailbox_customsensor, sizeof (mailbox_customsensor));
+	os_mbx_init (&mailbox_engineButton, sizeof (mailbox_engineButton));
+	os_mbx_init (&mailbox_doorButton, sizeof (mailbox_doorButton)); 	
 }
 
 
@@ -120,17 +124,20 @@ __irq void ADC_IRQ_Handler (void) {     /* AD converter interrupt routine     */
 
 	int potValue = ADC->DR0 & 0x03FF;    /* AD value for global usage (10 bit) */	
 	int slideValue = ADC->DR1 & 0x03FF;          /* AD value for global usage (10 bit) */	//dr4.1
+	int customSensorValue = ADC->DR2 & 0x03FF;   
 	
 	int * slidePointer = malloc(sizeof(int));
 	int * potPointer = malloc(sizeof(int));
-	
+	int * customSensorPointer = malloc(sizeof(int));
 	
 	* slidePointer = slideValue;
 	* potPointer = potValue;
+	* customSensorPointer = customSensorValue;
 	
 
 	os_mbx_send (&mailbox_slidesensor, slidePointer, 0xFFFF);  
-	os_mbx_send (&mailbox_potsensor, potPointer, 0xFFFF);  
+	os_mbx_send (&mailbox_potsensor, potPointer, 0xFFFF);
+	os_mbx_send (&mailbox_customsensor, customSensorPointer, 0xFFFF);    
 
 	
   ADC->CR &= 0xFFFE;                    /* Clear STR bit (Start Conversion)   */
@@ -285,20 +292,24 @@ void processPotValue(){
 __task void ADC_Recv(void){
 		void * slideMsg;
 		void * potMsg;
+		void * customSensorMsg;
 
 	
 		while(1){
 			
 			os_mbx_wait (&mailbox_slidesensor, &slideMsg, 0xffff); 
-	
 			slideValue =  * ((int * ) slideMsg);
 			free(slideMsg);
 			
 		  os_mbx_wait (&mailbox_potsensor, &potMsg, 0xffff); 
-			
 			potValue =  * ((int * ) potMsg);
-			
 			free(potMsg);
+			
+			
+			
+			os_mbx_wait (&mailbox_customsensor, &customSensorMsg, 0xffff); 
+			customSensorValue =  * ((int * ) customSensorMsg);
+			free(customSensorMsg);
 			
 			processPotValue();
 		
@@ -440,7 +451,12 @@ __task void doorTask(void){
 
 __task void speedTask(){
 	
-
+		float forwardOrBrakeForce;
+		float dragForce;
+		float resultantForce;
+		float acceleration;
+		float accIn100ms;
+	
 		
 		os_itv_set(100);	
 		
@@ -451,15 +467,23 @@ __task void speedTask(){
 			
 			if(!doorCurrentlyOpen && engineCurrentlyOn){
 				
-				float forwardForce = slideValue * 40;
-
-				float dragForce = 0.5 * MASS_DENSITY_AIR * pow(currentSpeed, 2) * CAR_FRONT_AREA * CAR_DRAG_COEFFICIENT;
-				float resultantForce = forwardForce - dragForce;
 
 				
-				float acceleration = resultantForce / CAR_MASS;
+				if(customSensorValue == 0) {
+						forwardOrBrakeForce = slideValue * 40;
+				} else {
+						forwardOrBrakeForce = customSensorValue * 40 * -1;
+				}
 				
-				float accIn100ms = acceleration / 10;
+
+
+				dragForce = 0.5 * MASS_DENSITY_AIR * pow(currentSpeed, 2) * CAR_FRONT_AREA * CAR_DRAG_COEFFICIENT;
+				resultantForce = forwardOrBrakeForce - dragForce;
+
+				
+				acceleration = resultantForce / CAR_MASS;
+				
+				accIn100ms = acceleration / 10;
 				
 				
 				//To allow continued slowing if deceleration is too low.
