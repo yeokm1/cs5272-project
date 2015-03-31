@@ -18,10 +18,23 @@
 #include <91x_lib.h>
 #include <RTL.h>
 #include <stdlib.h> 
+#include <math.h>
 
 #define LCD_COL 16
 #define BRIGHTNESS_TOTAL 20
 #define TOTAL_BRIGHTNESS_SETTINGS 5
+
+//1992 Toyota Camry
+const	int CAR_MASS = 1300;
+const float CAR_DRAG_COEFFICIENT = 0.31; //Cd
+const float CAR_FRONT_AREA = 0.703; //m2
+
+
+const	float MASS_DENSITY_AIR = 6;
+		
+
+
+
 
 const int POT_CAT[TOTAL_BRIGHTNESS_SETTINGS] = {204, 408, 612, 816, 1023};
 const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {20, 10 , 6 , 3, 0};
@@ -51,7 +64,7 @@ unsigned char AD_in_progress;           /* AD conversion in progress flag     */
 int slideValue;
 int potValue;
 
-int currentSpeed;
+float currentSpeed;
 
 int openToClose = 0;
 
@@ -299,7 +312,7 @@ __task void printLCD(void){
 		os_itv_wait();
 				
 		if(engineCurrentlyOn){
-			sprintf(buff, "Speed: %03dkm/h  Amb: %d, D:%d", currentSpeed, potValue, doorCurrentlyOpen);
+			sprintf(buff, "Speed: %03.0fkm/h  Amb: %d, D:%d", currentSpeed, potValue, doorCurrentlyOpen);
 			
 		} else {
 			sprintf(buff, "Engine Off      Amb: %d, D:%d", potValue, doorCurrentlyOpen);
@@ -377,8 +390,6 @@ __task void engineChangerTask(void){
 			engineChangingState = 0;
 			os_mut_release (&mutex_lcd);
 			
-			//Turn off headlights
-			//changeHeadLightsState(0);
 			
 		} else {
 		
@@ -421,15 +432,43 @@ __task void doorTask(void){
 
 __task void speedTask(){
 	
-	
+
+		
 		os_itv_set(100);	
+		
+	
 		while(1){
 		
 			os_itv_wait();
 			
-			//Don't change speed if door is open
-			if(!doorCurrentlyOpen){
-					currentSpeed = slideValue / 2;
+			if(!doorCurrentlyOpen && engineCurrentlyOn){
+				
+				float forwardForce = slideValue * 40;
+
+				float dragForce = 0.5 * MASS_DENSITY_AIR * pow(currentSpeed, 2) * CAR_FRONT_AREA * CAR_DRAG_COEFFICIENT;
+				float resultantForce = forwardForce - dragForce;
+
+				
+				float acceleration = resultantForce / CAR_MASS;
+				
+				float accIn100ms = acceleration / 10;
+				
+				
+				//To allow continued slowing if deceleration is too low.
+				if(-0.1 < accIn100ms && accIn100ms < 0){
+					accIn100ms = -0.1;
+				}
+				
+				//Don't go into reverse speed if speed is 0
+				if(accIn100ms < 0 && currentSpeed <= 0){
+					continue;
+				}
+				
+				currentSpeed += accIn100ms;
+				
+				//Prevent showing of negative values
+				currentSpeed = fabs(currentSpeed);
+				
 			}
 
 		}
