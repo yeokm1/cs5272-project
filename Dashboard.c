@@ -320,10 +320,10 @@ __task void printLCD(void){
 		os_itv_wait();
 				
 		if(engineCurrentlyOn){
-			sprintf(buff, "Speed: %03.0fkm/h  Amb: %d, D:%d", currentSpeed, potValue, doorCurrentlyOpen);
+			sprintf(buff, "S:%03.0f           D:%d, Amb:%d", currentSpeed, doorCurrentlyOpen, potValue);
 			
 		} else {
-			sprintf(buff, "Engine Off      Amb: %d, D:%d", potValue, doorCurrentlyOpen);
+			sprintf(buff, "Engine Off      D:%d, Amb:%d", doorCurrentlyOpen, potValue);
 			
 		}
 		
