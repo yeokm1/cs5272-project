@@ -30,6 +30,7 @@ const int BRIGHTNESS[TOTAL_BRIGHTNESS_SETTINGS] = {20, 10 , 6 , 3, 0};
 int brightnessPositionHeadlight = 0;
 int brightnessPositionInterior = 0;
 
+unsigned char headlightCurrentlyOn = 0;
 
 unsigned char engineButtonPrevState = 0;
 unsigned char doorButtonPrevState = 0;
@@ -182,11 +183,16 @@ void write_led()
 
 
 void changeHeadLightsState(int state){
-		B0 = state;
-		B1 = state;
-		B2 = state;
+	
+		if(headlightCurrentlyOn != state){
+			headlightCurrentlyOn = state;
+			B0 = state;
+			B1 = state;
+			B2 = state;
 			
-		write_led();
+			
+			write_led();
+		}
 }
 
 
@@ -202,6 +208,11 @@ __task void headlightBrightness(){
 				os_dly_wait (offDelay); 
 				changeHeadLightsState(1);
 				os_dly_wait (onDelay);
+		} else {
+				changeHeadLightsState(0);
+				
+				//Delay to prevent excessive CPU use 
+				os_dly_wait (100); 
 		}
 				
 
@@ -366,7 +377,8 @@ __task void engineChangerTask(void){
 			engineChangingState = 0;
 			os_mut_release (&mutex_lcd);
 			
-			changeHeadLightsState(0);
+			//Turn off headlights
+			//changeHeadLightsState(0);
 			
 		} else {
 		
