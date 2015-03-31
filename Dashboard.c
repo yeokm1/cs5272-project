@@ -194,14 +194,15 @@ __task void headlightBrightness(){
 
 	while(1){ 
 		
-		int onDelay = BRIGHTNESS[brightnessPositionHeadlight];
-		int offDelay = BRIGHTNESS_TOTAL - onDelay;
+		if(engineCurrentlyOn){
+				int onDelay = BRIGHTNESS[brightnessPositionHeadlight];
+				int offDelay = BRIGHTNESS_TOTAL - onDelay;
 		
-		changeHeadLightsState(0);
-		os_dly_wait (offDelay); 
-						
-		changeHeadLightsState(1);
-		os_dly_wait (onDelay);
+				changeHeadLightsState(0);
+				os_dly_wait (offDelay); 
+				changeHeadLightsState(1);
+				os_dly_wait (onDelay);
+		}
 				
 
 	}
@@ -364,6 +365,8 @@ __task void engineChangerTask(void){
 			
 			engineChangingState = 0;
 			os_mut_release (&mutex_lcd);
+			
+			changeHeadLightsState(0);
 			
 		} else {
 		
