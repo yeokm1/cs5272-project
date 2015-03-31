@@ -399,15 +399,18 @@ __task void engineChangerTask(void){
 		
 		if(engineCurrentlyOn){
 			
-			printMessage("Stopping Engine",0xFFFE, FALSE);
 			
-			os_dly_wait (1000); 
+			if(isCurrentSpeedEffectivelyZero()){
+				printMessage("Stopping Engine",0xFFFE, FALSE);
+			
+				os_dly_wait (1000); 
 	
 		
-			engineCurrentlyOn = 0;
+				engineCurrentlyOn = 0;
 			
-			engineChangingState = 0;
-			os_mut_release (&mutex_lcd);
+				engineChangingState = 0;
+				os_mut_release (&mutex_lcd);
+			}
 			
 			
 		} else {
@@ -475,7 +478,6 @@ __task void speedTask(){
 						forwardOrBrakeForce = customSensorValue * 40 * -1;
 				}
 				
-
 
 				dragForce = 0.5 * MASS_DENSITY_AIR * pow(currentSpeed, 2) * CAR_FRONT_AREA * CAR_DRAG_COEFFICIENT;
 				resultantForce = forwardOrBrakeForce - dragForce;
