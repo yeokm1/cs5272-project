@@ -411,7 +411,12 @@ __task void speedTask(){
 		while(1){
 		
 			os_itv_wait();
-			currentSpeed = slideValue / 2;
+			
+			//Don't change speed if door is open
+			if(!doorCurrentlyOpen){
+					currentSpeed = slideValue / 2;
+			}
+
 		}
 
 	}
