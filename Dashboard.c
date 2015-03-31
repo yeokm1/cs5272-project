@@ -499,7 +499,9 @@ __task void speedTask(){
 				currentSpeed += accIn100ms;
 				
 				//Prevent showing of negative values
-				currentSpeed = fabs(currentSpeed);
+				if(currentSpeed < 0){
+					currentSpeed = 0;
+				}
 				
 			}
 
