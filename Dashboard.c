@@ -208,6 +208,14 @@ void changeHeadLightsState(int state){
 		}
 }
 
+int isCurrentSpeedEffectivelyZero(){
+	if(-1 < currentSpeed && currentSpeed < 1){
+		return 1;
+	} else {
+		return 0;
+	}
+
+}
 
 __task void headlightBrightness(){
 
@@ -419,7 +427,7 @@ __task void doorTask(void){
 		if(doorCurrentlyOpen){
 			doorCurrentlyOpen = 0;
 		} else {
-			if(currentSpeed == 0){
+			if(isCurrentSpeedEffectivelyZero()){
 				doorCurrentlyOpen = 1;
 				startAlarmTaskIfNeeded();
 			}
