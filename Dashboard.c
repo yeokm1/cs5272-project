@@ -414,17 +414,29 @@ __task void engineChangerTask(void){
 			
 			
 		} else {
+			
+			
+			if(slideValue == 0){
 		
-			printMessage("Starting Engine", 0xFFFE, FALSE);
+				printMessage("Starting Engine", 0xFFFE, FALSE);
 			
-			os_dly_wait (1000); 
+				os_dly_wait (1000); 
 			
-			engineCurrentlyOn = 1;
+				engineCurrentlyOn = 1;
 			
-			engineChangingState = 0;
-			os_mut_release (&mutex_lcd);
+				engineChangingState = 0;
+				os_mut_release (&mutex_lcd);
 			
-			startAlarmTaskIfNeeded();
+				startAlarmTaskIfNeeded();
+			} else {
+				printMessage("Acc pressed,    release to start", 0xFFFE, FALSE);
+			
+				os_dly_wait (2000); 
+
+				engineChangingState = 0;
+				os_mut_release (&mutex_lcd);
+			
+			}
 		}
 		
 	}
