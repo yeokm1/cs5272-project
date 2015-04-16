@@ -354,6 +354,10 @@ __task void alarmTask(void){
 	
 	
 	while(1){
+		if(!engineCurrentlyOn || !doorCurrentlyOpen){
+			break;
+		}
+		
 		B6 = 1;
 		B7 = 1;
 			
@@ -367,11 +371,7 @@ __task void alarmTask(void){
 			
 		write_led();
 		
-		
-		if(!engineCurrentlyOn || !doorCurrentlyOpen){
-			break;
-		}
-		
+				
 		os_dly_wait (200); 
 		
 		
