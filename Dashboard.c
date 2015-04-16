@@ -688,17 +688,17 @@ __task void init (void) {
 	printEngineStoppedMessage();
 
 	initMailBoxes();
-
+	
+	id_task_headlight = os_tsk_create(headlightBrightness,1);
   id_task_get_adc_and_buttons = os_tsk_create(GET_INPUTS,2);
 	id_task_adc_recv = os_tsk_create(ADC_Recv,3);
-	id_task_headlight = os_tsk_create(headlightBrightness,1);
 	id_task_speed = os_tsk_create(speedTask, 4);
 	
 	
-	id_task_interior = os_tsk_create(interiorTask, 10);
-	id_task_engine = os_tsk_create(engineChangerTask,150);
-	id_task_door = os_tsk_create(doorTask, 151);
-	id_task_lcd = os_tsk_create(printLCD,200);
+	id_task_interior = os_tsk_create(interiorTask, 5);
+	id_task_engine = os_tsk_create(engineChangerTask,6);
+	id_task_door = os_tsk_create(doorTask, 7);
+	id_task_lcd = os_tsk_create(printLCD, 8);
   
   os_tsk_delete_self ();
 }
