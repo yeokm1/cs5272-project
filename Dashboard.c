@@ -690,7 +690,7 @@ __task void init (void) {
 	initMailBoxes();
 	
 	id_task_headlight = os_tsk_create(headlightBrightness,1);
-  id_task_get_adc_and_buttons = os_tsk_create(GET_INPUTS,2);
+  	id_task_get_adc_and_buttons = os_tsk_create(GET_INPUTS,2);
 	id_task_adc_recv = os_tsk_create(ADC_Recv,3);
 	id_task_speed = os_tsk_create(speedTask, 4);
 	
