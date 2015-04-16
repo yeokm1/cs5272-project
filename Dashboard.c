@@ -354,6 +354,10 @@ __task void alarmTask(void){
 	
 	
 	while(1){
+		if(!engineCurrentlyOn || !doorCurrentlyOpen){
+			break;
+		}
+		
 		B6 = 1;
 		B7 = 1;
 			
@@ -367,11 +371,7 @@ __task void alarmTask(void){
 			
 		write_led();
 		
-		
-		if(!engineCurrentlyOn || !doorCurrentlyOpen){
-			break;
-		}
-		
+				
 		os_dly_wait (200); 
 		
 		
@@ -695,10 +695,10 @@ __task void init (void) {
 	id_task_speed = os_tsk_create(speedTask, 4);
 	
 	
-	id_task_interior = os_tsk_create(interiorTask, 5);
-	id_task_engine = os_tsk_create(engineChangerTask,6);
-	id_task_door = os_tsk_create(doorTask, 7);
-	id_task_lcd = os_tsk_create(printLCD, 8);
+	id_task_interior = os_tsk_create(interiorTask, 6);
+	id_task_engine = os_tsk_create(engineChangerTask,7);
+	id_task_door = os_tsk_create(doorTask, 8);
+	id_task_lcd = os_tsk_create(printLCD, 9);
   
   os_tsk_delete_self ();
 }
