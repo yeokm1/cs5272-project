@@ -122,17 +122,17 @@ void initMailBoxes(){
 
 __irq void ADC_IRQ_Handler (void) {     /* AD converter interrupt routine     */
 
-	int potValue = ADC->DR0 & 0x03FF;    /* AD value for global usage (10 bit) */	
-	int slideValue = ADC->DR1 & 0x03FF;          /* AD value for global usage (10 bit) */	//dr4.1
-	int customSensorValue = ADC->DR2 & 0x03FF;   
+	int potValueRaw = ADC->DR0 & 0x03FF;    /* AD value for global usage (10 bit) */	
+	int slideValueRaw = ADC->DR1 & 0x03FF;          /* AD value for global usage (10 bit) */	//dr4.1
+	int customSensorValueRaw = ADC->DR2 & 0x03FF;   
 	
 	int * slidePointer = malloc(sizeof(int));
 	int * potPointer = malloc(sizeof(int));
 	int * customSensorPointer = malloc(sizeof(int));
 	
-	* slidePointer = slideValue;
-	* potPointer = potValue;
-	* customSensorPointer = customSensorValue;
+	* slidePointer = slideValueRaw;
+	* potPointer = potValueRaw;
+	* customSensorPointer = customSensorValueRaw;
 	
 
 	os_mbx_send (&mailbox_slidesensor, slidePointer, 0xFFFF);  
