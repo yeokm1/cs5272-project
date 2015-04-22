@@ -53,11 +53,11 @@ unsigned char doorCurrentlyOpen = 0;
 
 unsigned char engineChangingState = 0;
 
-os_mbx_declare (mailbox_slidesensor, 20); 
-os_mbx_declare (mailbox_potsensor, 20); 
-os_mbx_declare (mailbox_engineButton, 20);
-os_mbx_declare (mailbox_customsensor, 20);
-os_mbx_declare (mailbox_doorButton, 20);
+os_mbx_declare (mailbox_slidesensor, 40); 
+os_mbx_declare (mailbox_potsensor, 40); 
+os_mbx_declare (mailbox_engineButton, 40);
+os_mbx_declare (mailbox_customsensor, 40);
+os_mbx_declare (mailbox_doorButton, 40);
 
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
 unsigned char AD_in_progress;           /* AD conversion in progress flag     */
@@ -161,16 +161,18 @@ void read_and_process_buttons(){
 	//BUTTON_3_6:
 	button_engine_now = !(GPIO3->DR[0x100]>>6); // Returns 1 when pressed and 0 when released
 
-	//Debounce the engine button press
-	if(button_engine_now && !engineButtonPrevState){
+	if(currentSpeed < 1){
+		//Debounce the engine button press
+		if(button_engine_now && !engineButtonPrevState){
 		
-		if(!engineChangingState){
-				engineChangingState = 1;
-				os_mbx_send (&mailbox_engineButton, NULL, 0xFFFF); 	
-		}			
-	} 
-	engineButtonPrevState = button_engine_now;
-	
+			
+			if(!engineChangingState){
+					engineChangingState = 1;
+					os_mbx_send (&mailbox_engineButton, NULL, 0xFFFF); 	
+			}			
+		} 
+		engineButtonPrevState = button_engine_now;
+	}
 	
 	
 	//Debounce the door button press
@@ -331,7 +333,7 @@ __task void printLCD(void){
 		os_itv_wait();
 				
 		if(engineCurrentlyOn){
-			sprintf(buff, "S:%03.0f           D:%d, Amb:%d", currentSpeed, doorCurrentlyOpen, potValue);
+			sprintf(buff, "S:%03.0fkmh        D:%d, Amb:%d", currentSpeed, doorCurrentlyOpen, potValue);
 			
 		} else {
 			sprintf(buff, "Engine Off      D:%d, Amb:%d", doorCurrentlyOpen, potValue);
@@ -397,10 +399,12 @@ __task void engineChangerTask(void){
 	while(1){
 		os_mbx_wait (&mailbox_engineButton, &engineButtonMessage, 0xffff);
 		
+		free(engineButtonMessage);
+		
 		if(engineCurrentlyOn){
 			
 			
-			if(isCurrentSpeedEffectivelyZero()){
+			if(currentSpeed < 1){
 				printMessage("Stopping Engine",0xFFFE, FALSE);
 			
 				os_dly_wait (1000); 
@@ -450,6 +454,8 @@ __task void doorTask(void){
 
 	while(1){
 		os_mbx_wait (&mailbox_doorButton, &doorButtonMessage, 0xffff);
+		free(doorButtonMessage);
+		
 		if(doorCurrentlyOpen){
 			doorCurrentlyOpen = 0;
 		} else {
