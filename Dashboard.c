@@ -53,11 +53,11 @@ unsigned char doorCurrentlyOpen = 0;
 
 unsigned char engineChangingState = 0;
 
-os_mbx_declare (mailbox_slidesensor, 20); 
-os_mbx_declare (mailbox_potsensor, 20); 
-os_mbx_declare (mailbox_engineButton, 20);
-os_mbx_declare (mailbox_customsensor, 20);
-os_mbx_declare (mailbox_doorButton, 20);
+os_mbx_declare (mailbox_slidesensor, 40); 
+os_mbx_declare (mailbox_potsensor, 40); 
+os_mbx_declare (mailbox_engineButton, 40);
+os_mbx_declare (mailbox_customsensor, 40);
+os_mbx_declare (mailbox_doorButton, 40);
 
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
 unsigned char AD_in_progress;           /* AD conversion in progress flag     */
