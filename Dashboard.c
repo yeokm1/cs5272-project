@@ -161,16 +161,18 @@ void read_and_process_buttons(){
 	//BUTTON_3_6:
 	button_engine_now = !(GPIO3->DR[0x100]>>6); // Returns 1 when pressed and 0 when released
 
-	//Debounce the engine button press
-	if(button_engine_now && !engineButtonPrevState){
+	if(currentSpeed < 1){
+		//Debounce the engine button press
+		if(button_engine_now && !engineButtonPrevState){
 		
-		if(!engineChangingState){
-				engineChangingState = 1;
-				os_mbx_send (&mailbox_engineButton, NULL, 0xFFFF); 	
-		}			
-	} 
-	engineButtonPrevState = button_engine_now;
-	
+			
+			if(!engineChangingState){
+					engineChangingState = 1;
+					os_mbx_send (&mailbox_engineButton, NULL, 0xFFFF); 	
+			}			
+		} 
+		engineButtonPrevState = button_engine_now;
+	}
 	
 	
 	//Debounce the door button press
