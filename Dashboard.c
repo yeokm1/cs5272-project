@@ -397,6 +397,8 @@ __task void engineChangerTask(void){
 	while(1){
 		os_mbx_wait (&mailbox_engineButton, &engineButtonMessage, 0xffff);
 		
+		free(engineButtonMessage);
+		
 		if(engineCurrentlyOn){
 			
 			
@@ -450,6 +452,8 @@ __task void doorTask(void){
 
 	while(1){
 		os_mbx_wait (&mailbox_doorButton, &doorButtonMessage, 0xffff);
+		free(doorButtonMessage);
+		
 		if(doorCurrentlyOpen){
 			doorCurrentlyOpen = 0;
 		} else {
