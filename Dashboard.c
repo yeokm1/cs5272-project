@@ -400,7 +400,7 @@ __task void engineChangerTask(void){
 		if(engineCurrentlyOn){
 			
 			
-			if(isCurrentSpeedEffectivelyZero()){
+			if(currentSpeed < 1){
 				printMessage("Stopping Engine",0xFFFE, FALSE);
 			
 				os_dly_wait (1000); 
